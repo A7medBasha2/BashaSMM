@@ -57,18 +57,51 @@ async function runBot() {
   await page.setViewport({ width: 393, height: 851, isMobile: true });
 
   try {
-    // 3. تسجيل الدخول إلى فيسبوك
+    // 3. تسجيل الدخول إلى فيسبوك (نظام تتبع الذكي)
     console.log('الانتقال إلى صفحة تسجيل الدخول...');
     await page.goto('https://m.facebook.com/login', { waitUntil: 'networkidle2' });
 
     await page.type('input[name="email"]', account.email);
     await page.type('input[name="pass"]', account.password);
     
-    // الضغط على زر تسجيل الدخول بطريقة مرنة ومضمونة للموبايل
-    await Promise.all([
-      page.click('button[name="login"], button[type="submit"], input[name="login"], button[id*="login"]'),
-      page.waitForNavigation({ waitUntil: 'networkidle2' }).catch(() => {})
-    ]);
+    // مصفوفة بكل المحددات المحتملة لزرار الدخول في نسخة الموبايل
+    const possibleSelectors = [
+      'button[name="login"]',
+      'button[type="submit"]',
+      'input[name="login"]',
+      'button#login_button',
+      'form[method="post"] button',
+      'div[role="button"]'
+    ];
+
+    let clicked = false;
+    for (const selector of possibleSelectors) {
+      try {
+        // الانتظار لحد ما الزرار يظهر فعلاً قدامنا ويكون مرئي
+        const element = await page.waitForSelector(selector, { visible: true, timeout: 3000 });
+        if (element) {
+          console.log(`تم العثور على زرار الدخول باستخدام المحدد: ${selector}`);
+          await Promise.all([
+            element.click(),
+            page.waitForNavigation({ waitUntil: 'networkidle2' }).catch(() => {})
+          ]);
+          clicked = true;
+          break;
+        }
+      } catch (e) {
+        // لو المحدد مش موجود، جرب اللي بعده بهدوء
+      }
+    }
+
+    // الحل النووي الاحتياطي لو الزرار اتغير كلياً وماتلقطش
+    if (!clicked) {
+      console.log('جاري إرسال نموذج تسجيل الدخول مباشرة عبر السكريبت (Form Submit)...');
+      await page.evaluate(() => {
+        const form = document.querySelector('form');
+        if (form) form.submit();
+      });
+      await page.waitForNavigation({ waitUntil: 'networkidle2' }).catch(() => {});
+    }
 
     // 4. استخراج بيانات البروفايل أوتوماتيكياً
     console.log('الانتقال إلى صفحة البروفايل لاستخراج البيانات...');
@@ -96,7 +129,7 @@ async function runBot() {
     await supabase.from('bot_tasks').update({ status: 'completed' }).eq('id', currentTask.id);
     console.log('تمت المهمة بنجاح وتحديث بيانات الحساب في قاعدة البيانات! 🎉');
 
-  } catch (err) {
+</try> catch (err) {
     console.error('حدث خطأ أثناء تنفيذ الأوتوميشن:', err);
     await supabase.from('bot_tasks').update({ status: 'failed', error_message: err.message }).eq('id', currentTask.id);
   } finally {

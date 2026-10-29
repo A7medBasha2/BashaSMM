@@ -14,9 +14,9 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 async function runBotAgent() {
-    console.log("🤖 جاري فحص المهام الجديدة في جدول bot_tasks...");
+    console.log("🤖 جاري فحص المهام والحسابات المعلقة في قاعدة البيانات...");
 
-    // جلب المهام المعلقة (pending) من قاعدة البيانات
+    // جلب المهام المعلقة مع بيانات الأكونت والبصمة ومحاكاة الموبايل الخاصة به
     let { data: tasks, error } = await supabase
         .from('bot_tasks')
         .select('*, bot_accounts(*)')
@@ -29,12 +29,19 @@ async function runBotAgent() {
     }
 
     if (!tasks || tasks.length === 0) {
-        console.log("📭 لا توجد مهام معلقة حالياً.");
+        console.log("📭 لا توجد مهام معلقة حالياً. النظام في انتظار تكليف جديد.");
         return;
     }
 
     const task = tasks[0];
-    console.log(`🎯 تم العثور على مهمة جديدة: ${task.action_type} للهدف: ${task.target_url}`);
+    const account = task.bot_accounts;
+
+    console.log(`🎯 تم العثور على مهمة: [${task.action_type}] للهدف: ${task.target_url}`);
+    if (account) {
+        console.log(`👤 الأكونت المنفذ: ${account.account_name} | جهاز المحاكاة (Anti-detect): ${account.device_type}`);
+    } else {
+        console.log("⚠️ تنبيه: هذه المهمة غير مرتبطة بأكونت محدد!");
+    }
 
     // تحديث حالة المهمة إلى "جاري التنفيذ" (running)
     await supabase
@@ -42,16 +49,17 @@ async function runBotAgent() {
         .update({ status: 'running' })
         .eq('id', task.id);
 
-    // استخدام Gemini لتوليد الرد أو خطة التنفيذ الذكية للمهمة
+    // استخدام Gemini لتوليد المحتوى أو خطة التنفيذ البشرية بناءً على سياق الموبايل
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `أنت مساعد أتمتة لـ SMM. قم بتحليل هذه المهمة وجهز الخطوات التنفيذية لها:
+        contents: `أنت مساعد أتمتة ذكي لـ SMM مع حماية ضد الحظر (Anti-detect). قم بتحليل المهمة وجهز الرد أو التعليق البشري الواقعي:
         نوع المهمة: ${task.action_type}
         الرابط المستهدف: ${task.target_url}
-        بيانات الأكونت المرتبط: ${JSON.stringify(task.bot_accounts)}`,
+        بيانات الحساب ومحاكاة الجهاز: ${JSON.stringify(account)}
+        تعليمات إضافية: ${task.ai_context || 'تفاعل بشكل طبيعي وبشري تماماً'}`
     });
 
-    console.log("🧠 خطة الذكاء الاصطناعي للمهمة:");
+    console.log("🧠 خطة الذكاء الاصطناعي المولدة:");
     console.log(response.text);
 
     // تحديث المهمة إلى مكتملة (completed)
@@ -60,7 +68,7 @@ async function runBotAgent() {
         .update({ status: 'completed' })
         .eq('id', task.id);
 
-    console.log("✅ تم تنفيذ المهمة وتحديث حالتها بنجاح!");
+    console.log("✅ تم تنفيذ المهمة بنجاح وتحديث حالتها في القاعدة!");
 }
 
 runBotAgent();

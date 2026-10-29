@@ -1,10 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenAI } from '@google/genai';
+import WebSocket from 'ws';
 
-// الاتصال بـ Supabase باستخدام الـ Secrets
+// الاتصال بـ Supabase باستخدام الـ Secrets مع دعم الـ WebSocket لبيئة Node 20
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: { persistSession: false },
+    realtime: { transport: WebSocket }
+});
 
 // تهيئة عقل الـ AI باستخدام مفتاح Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });

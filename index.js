@@ -1,74 +1,80 @@
 import { createClient } from '@supabase/supabase-js';
-import { GoogleGenAI } from '@google/genai';
-import WebSocket from 'ws';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
-// الاتصال بـ Supabase باستخدام الـ Secrets مع دعم الـ WebSocket لبيئة Node 20
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false },
-    realtime: { transport: WebSocket }
-});
+puppeteer.use(StealthPlugin());
 
-// تهيئة عقل الـ AI باستخدام مفتاح Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-async function runBotAgent() {
-    console.log("🤖 جاري فحص المهام والحسابات المعلقة في قاعدة البيانات...");
+async function runBot() {
+  // 1. جلب المهمة المعلقة اللي لسه ضايفينها
+  const { data: tasks, error: taskErr } = await supabase
+    .from('bot_tasks')
+    .select('*, bot_accounts(*)')
+    .eq('status', 'pending')
+    .limit(1);
 
-    // جلب المهام المعلقة مع بيانات الأكونت والبصمة ومحاكاة الموبايل الخاصة به
-    let { data: tasks, error } = await supabase
-        .from('bot_tasks')
-        .select('*, bot_accounts(*)')
-        .eq('status', 'pending')
-        .limit(1);
+  if (taskErr || !tasks || tasks.length === 0) {
+    console.log('لا توجد مهام معلقة حالياً.');
+    return;
+  }
 
-    if (error) {
-        console.error("❌ خطأ أثناء جلب المهام:", error.message);
-        return;
-    }
+  const currentTask = tasks[0];
+  const account = currentTask.bot_accounts;
 
-    if (!tasks || tasks.length === 0) {
-        console.log("📭 لا توجد مهام معلقة حالياً. النظام في انتظار تكليف جديد.");
-        return;
-    }
+  console.log(`جارٍ بدء المهمة للحساب: ${account.email}`);
 
-    const task = tasks[0];
-    const account = task.bot_accounts;
+  // 2. تشغيل المتصفح
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
 
-    console.log(`🎯 تم العثور على مهمة: [${task.action_type}] للهدف: ${task.target_url}`);
-    if (account) {
-        console.log(`👤 الأكونت المنفذ: ${account.account_name} | جهاز المحاكاة (Anti-detect): ${account.device_type}`);
-    } else {
-        console.log("⚠️ تنبيه: هذه المهمة غير مرتبطة بأكونت محدد!");
-    }
+  const page = await browser.newPage();
+  await page.setUserAgent('Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.210 Mobile Safari/537.36');
 
-    // تحديث حالة المهمة إلى "جاري التنفيذ" (running)
-    await supabase
-        .from('bot_tasks')
-        .update({ status: 'running' })
-        .eq('id', task.id);
+  try {
+    // تحديث حالة المهمة إلى قيد التنفيذ
+    await supabase.from('bot_tasks').update({ status: 'in_progress' }).eq('id', currentTask.id);
 
-    // استخدام Gemini لتوليد المحتوى أو خطة التنفيذ البشرية بناءً على سياق الموبايل
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `أنت مساعد أتمتة ذكي لـ SMM مع حماية ضد الحظر (Anti-detect). قم بتحليل المهمة وجهز الرد أو التعليق البشري الواقعي:
-        نوع المهمة: ${task.action_type}
-        الرابط المستهدف: ${task.target_url}
-        بيانات الحساب ومحاكاة الجهاز: ${JSON.stringify(account)}
-        تعليمات إضافية: ${task.ai_context || 'تفاعل بشكل طبيعي وبشري تماماً'}`
+    // تسجيل الدخول
+    await page.goto('https://m.facebook.com/login', { waitUntil: 'networkidle2' });
+    await page.type('input[name="email"]', account.email);
+    await page.type('input[name="pass"]', account.password);
+    await page.click('button[name="login"]');
+    await page.waitForNavigation({ waitUntil: 'networkidle2' });
+
+    // 3. استخراج بيانات البروفايل أوتوماتيكياً
+    await page.goto('https://m.facebook.com/me', { waitUntil: 'networkidle2' });
+    
+    const profileData = await page.evaluate(() => {
+      const nameEl = document.querySelector('h1') || document.querySelector('strong');
+      const imgEl = document.querySelector('img[alt*="profile"], img[src*="scontent"]');
+      return {
+        full_name: nameEl ? nameEl.innerText : null,
+        avatar_url: imgEl ? imgEl.src : null
+      };
     });
 
-    console.log("🧠 خطة الذكاء الاصطناعي المولدة:");
-    console.log(response.text);
+    console.log('تم استخراج بيانات البروفايل:', profileData);
 
-    // تحديث المهمة إلى مكتملة (completed)
-    await supabase
-        .from('bot_tasks')
-        .update({ status: 'completed' })
-        .eq('id', task.id);
+    // 4. تحديث جدول الأكونتات بالبيانات الجديدة
+    await supabase.from('bot_accounts').update({
+      username: profileData.full_name || account.username,
+      avatar_url: profileData.avatar_url,
+      status: 'active'
+    }).eq('id', account.id);
 
-    console.log("✅ تم تنفيذ المهمة بنجاح وتحديث حالتها في القاعدة!");
+    // إنهاء المهمة بنجاح
+    await supabase.from('bot_tasks').update({ status: 'completed' }).eq('id', currentTask.id);
+    console.log('تمت المهمة بنجاح وتحديث بيانات الحساب! 🎉');
+
+  } catch (err) {
+    console.error('حدث خطأ أثناء التنفيذ:', err);
+    await supabase.from('bot_tasks').update({ status: 'failed', error_message: err.message }).eq('id', currentTask.id);
+  } finally {
+    await browser.close();
+  }
 }
 
-runBotAgent();
+runBot();

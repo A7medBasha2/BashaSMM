@@ -1,0 +1,15 @@
+{
+  "name": "basha-smm-bot",
+  "version": "1.0.0",
+  "description": "Autonomous Facebook Bot Engine",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google/genai": "^0.1.1",
+    "@supabase/supabase-js": "^2.45.0",
+    "puppeteer": "^23.0.0"
+  }
+}

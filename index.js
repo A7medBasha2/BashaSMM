@@ -1,11 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import WebSocket from 'ws';
 
 puppeteer.use(StealthPlugin());
 
-// تهيئة الاتصال بـ Supabase باستخدام متغيرات البيئة السرية
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+// تهيئة الاتصال بـ Supabase مع تفعيل الـ WebSocket يدوياً لبيئة Node.js v20
+const supabase = createClient(
+  process.env.SUPABASE_URL, 
+  process.env.SUPABASE_SERVICE_ROLE_KEY, 
+  {
+    auth: { persistSession: false },
+    realtime: { transport: WebSocket }
+  }
+);
 
 async function runBot() {
   console.log('جارٍ البحث عن المهام المعلقة...');

@@ -64,9 +64,10 @@ async function runBot() {
     await page.type('input[name="email"]', account.email);
     await page.type('input[name="pass"]', account.password);
     
+    // الضغط على زر تسجيل الدخول بطريقة مرنة ومضمونة للموبايل
     await Promise.all([
-      page.click('button[name="login"]'),
-      page.waitForNavigation({ waitUntil: 'networkidle2' })
+      page.click('button[name="login"], button[type="submit"], input[name="login"], button[id*="login"]'),
+      page.waitForNavigation({ waitUntil: 'networkidle2' }).catch(() => {})
     ]);
 
     // 4. استخراج بيانات البروفايل أوتوماتيكياً

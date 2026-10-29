@@ -57,7 +57,7 @@ async function runBot() {
   await page.setViewport({ width: 393, height: 851, isMobile: true });
 
   try {
-    // 3. تسجيل الدخول إلى فيسبوك (نظام تتبع الذكي)
+    // 3. تسجيل الدخول إلى فيسبوك (نظام التتبع الذكي)
     console.log('الانتقال إلى صفحة تسجيل الدخول...');
     await page.goto('https://m.facebook.com/login', { waitUntil: 'networkidle2' });
 
@@ -77,7 +77,6 @@ async function runBot() {
     let clicked = false;
     for (const selector of possibleSelectors) {
       try {
-        // الانتظار لحد ما الزرار يظهر فعلاً قدامنا ويكون مرئي
         const element = await page.waitForSelector(selector, { visible: true, timeout: 3000 });
         if (element) {
           console.log(`تم العثور على زرار الدخول باستخدام المحدد: ${selector}`);
@@ -89,11 +88,10 @@ async function runBot() {
           break;
         }
       } catch (e) {
-        // لو المحدد مش موجود، جرب اللي بعده بهدوء
+        // لو المحدد مش موجود، جرب اللي بعده
       }
     }
 
-    // الحل النووي الاحتياطي لو الزرار اتغير كلياً وماتلقطش
     if (!clicked) {
       console.log('جاري إرسال نموذج تسجيل الدخول مباشرة عبر السكريبت (Form Submit)...');
       await page.evaluate(() => {
@@ -129,7 +127,7 @@ async function runBot() {
     await supabase.from('bot_tasks').update({ status: 'completed' }).eq('id', currentTask.id);
     console.log('تمت المهمة بنجاح وتحديث بيانات الحساب في قاعدة البيانات! 🎉');
 
-</try> catch (err) {
+  } catch (err) {
     console.error('حدث خطأ أثناء تنفيذ الأوتوميشن:', err);
     await supabase.from('bot_tasks').update({ status: 'failed', error_message: err.message }).eq('id', currentTask.id);
   } finally {

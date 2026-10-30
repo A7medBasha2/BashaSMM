@@ -1,8 +1,8 @@
 {
-  "name": "Basha SMM Bot",
-  "description": "Autonomous Facebook Bot Engine and Social Media Marketing automation dashboard.",
+  "name": "Basha SMM - Autonomous Social Engine",
+  "description": "منظومة Basha SMM المتطورة لإدارة وأتمتة حسابات فيسبوك والمزامنة الحية للصور وتنفيذ المهام",
+  "version": "2.0.0",
   "capabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ],
-  "permissions": []
+  ]
 }

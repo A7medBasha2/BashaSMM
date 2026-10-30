@@ -1,0 +1,8 @@
+{
+  "name": "Basha SMM Bot",
+  "description": "Autonomous Facebook Bot Engine and Social Media Marketing automation dashboard.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "permissions": []
+}

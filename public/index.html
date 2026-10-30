@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basha SMM - إدارة الحسابات الفعلية ومحرك الأوتوميشن الحقيقي</title>
+  <meta name="description" content="نظام إدارة وأتمتة حسابات السوشيال ميديا ومحرك الأوتوميشن الخفي فائق التطور">
+  <meta property="og:title" content="Basha SMM - إدارة الحسابات الفعلية ومحرك الأوتوميشن الحقيقي">
+  <meta property="og:description" content="نظام إدارة وأتمتة حسابات السوشيال ميديا ومحرك الأوتوميشن الخفي فائق التطور">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#08080A',
+              card: '#13131A',
+              border: '#23232F',
+              gold: '#F59E0B',
+              'gold-light': '#FCD34D',
+              'gold-dark': '#B45309'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Cairo', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome 6 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      background-color: #08080A;
+      color: #F3F4F6;
+      font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0D0D12;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #262633;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #F59E0B;
+    }
+    .gold-glow {
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+    }
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+      animation: spin-slow 1.5s linear infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#08080A] text-slate-100 antialiased selection:bg-amber-500/20 selection:text-amber-300">
+
+  <!-- الهيدر الرئيسي (Luxury Top Bar) -->
+  <header class="sticky top-0 z-40 bg-[#0E0E14]/90 backdrop-blur-md border-b border-[#23232F] px-4 lg:px-8 py-3.5 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <!-- الشعار واسم النظام -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-black font-extrabold text-xl shadow-lg shadow-amber-500/20">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              Basha <span class="text-amber-400">SMM</span>
+            </h1>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              Live Sync Active
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">محرك فيسبوك الحقيقي والمزامنة المستمرة للصور</p>
+        </div>
+      </div>
+
+      <!-- أدوات التحكم والتشغيل المباشر -->
+      <div class="flex items-center gap-2.5">
+        <!-- زر إضافة حساب حقيقي -->
+        <button onclick="openAddAccountModal()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-user-plus"></i>
+          <span class="hidden sm:inline">إضافة حساب حقيقي</span>
+          <span class="sm:hidden">حساب جديد</span>
+        </button>
+
+        <!-- زر تشغيل/إيقاف المحرك التلقائي -->
+        <button id="toggleWorkerBtn" onclick="toggleContinuousWorker()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#181822] hover:bg-[#222230] text-slate-200 border border-[#2A2A38] transition-all flex items-center gap-2">
+          <i class="fa-solid fa-play text-amber-400" id="toggleIcon"></i>
+          <span id="toggleText">تشغيل الطابور</span>
+        </button>
+
+        <!-- زر تنفيذ مهمة فورية -->
+        <button onclick="triggerImmediateTask()" class="px-3 py-2 text-xs font-medium rounded-lg bg-[#181822] hover:bg-[#20202E] text-slate-200 border border-[#2A2A38] transition-all flex items-center gap-1.5" title="معالجة أول مهمة معلقة في الطابور فوراً">
+          <i class="fa-solid fa-forward-step text-amber-400"></i>
+          <span>تنفيذ فوري</span>
+        </button>
+
+        <!-- زر إعدادات الربط مع Supabase -->
+        <button onclick="openSettingsModal()" class="w-9 h-9 rounded-lg bg-[#13131A] hover:bg-[#1C1C26] border border-[#23232F] text-slate-400 hover:text-amber-400 transition-all flex items-center justify-center" title="إعدادات Supabase">
+          <i class="fa-solid fa-sliders"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- محتوى لوحة التحكم الرئيسي -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-6">
+
+    <!-- شريط الاتصال والمزامنة الحية للصور -->
+    <div id="quickConnectBanner" class="p-3.5 rounded-xl bg-gradient-to-r from-[#13131A] to-[#181824] border border-[#2A2A38] flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-3">
+        <div id="dbStatusIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+        <div>
+          <span class="font-bold text-white ml-2">المزامنة الحية المستمرة:</span>
+          <span class="text-emerald-400 font-semibold font-mono">مفعلة لايف (Auto Avatar & Status Sync)</span>
+          <span class="mx-2 text-slate-500">|</span>
+          <span class="text-slate-400" id="dbBadge">جاري فحص الاتصال...</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="syncAllAccountsAvatars()" class="px-3 py-1.5 rounded-lg bg-[#20202E] hover:bg-[#28283A] text-amber-400 border border-amber-500/20 transition-all flex items-center gap-1.5 font-medium" title="فحص ومزامنة صور جميع الحسابات من فيسبوك">
+          <i class="fa-solid fa-camera-rotate"></i>
+          <span>مزامنة صور الحسابات الآن</span>
+        </button>
+        <button onclick="refreshAllData()" class="px-3 py-1.5 rounded-lg bg-[#181822] hover:bg-[#20202E] text-slate-300 border border-[#2A2A38] transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>تحديث</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- كروت الإحصائيات الفورية -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+      <div class="p-4 rounded-xl bg-[#13131A] border border-[#23232F] hover:border-emerald-500/40 transition-all">
+        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <span>الحسابات النشطة</span>
+          <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-emerald-400" id="statActiveAccounts">0</div>
+        <p class="text-[10px] text-slate-500 mt-1">جاهزة ومسجلة الدخول</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-[#13131A] border border-[#23232F] hover:border-amber-500/40 transition-all">
+        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <span>شاشة تفتيش</span>
+          <i class="fa-solid fa-shield-halved text-amber-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-amber-400" id="statCheckpointAccounts">0</div>
+        <p class="text-[10px] text-slate-500 mt-1">مجمدة مؤقتاً للحماية</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-[#13131A] border border-[#23232F] hover:border-rose-500/40 transition-all">
+        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <span>حسابات محظورة</span>
+          <i class="fa-solid fa-ban text-rose-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-rose-400" id="statBannedAccounts">0</div>
+        <p class="text-[10px] text-slate-500 mt-1">مستبعدة من الطابور</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-[#13131A] border border-[#23232F] hover:border-amber-500/40 transition-all">
+        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <span>طابور الانتظار</span>
+          <i class="fa-solid fa-hourglass-half text-amber-300"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-amber-300" id="statPendingTasks">0</div>
+        <p class="text-[10px] text-slate-500 mt-1">تنتظر دورها بالمتصفح</p>
+      </div>
+
+      <div class="col-span-2 md:col-span-1 p-4 rounded-xl bg-[#13131A] border border-[#23232F] hover:border-blue-500/40 transition-all">
+        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <span>مهام مكتملة</span>
+          <i class="fa-solid fa-circle-check text-blue-400"></i>
+        </div>
+        <div class="text-2xl font-bold font-mono text-blue-400" id="statCompletedTasks">0</div>
+        <p class="text-[10px] text-slate-500 mt-1">تمت وموثقة بالصور</p>
+      </div>
+    </div>
+
+    <!-- شبكة الإدارة والتحكم الكامل: الحسابات والمهام -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- قسم إدارة الحسابات الفعلية ومزامنة الصور الحقيقية -->
+      <div class="lg:col-span-5 space-y-4">
+        <div class="rounded-xl bg-[#13131A] border border-[#23232F] overflow-hidden flex flex-col h-[600px]">
+          <div class="p-4 border-b border-[#23232F] flex items-center justify-between bg-[#101017]">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-users-gear text-amber-400 text-sm"></i>
+              <h2 class="font-bold text-sm text-white">الحسابات الفعلية (Real Accounts)</h2>
+              <span id="accountsCountBadge" class="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/10 text-amber-400 font-mono font-bold">0</span>
+            </div>
+            <button onclick="openAddAccountModal()" class="px-3 py-1.5 text-xs rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-all flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-plus"></i> إضافة حساب
+            </button>
+          </div>
+
+          <!-- قائمة الحسابات الفعلية -->
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3" id="accountsListContainer">
+            <div class="text-center py-16 text-slate-500 text-xs">
+              <i class="fa-solid fa-circle-notch fa-spin text-xl mb-3 text-amber-400"></i>
+              <p>جاري تحميل الحسابات الفعلية...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- قسم طابور المهام وسجل الأحداث المباشر -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- جدول طابور المهام (bot_tasks) -->
+        <div class="rounded-xl bg-[#13131A] border border-[#23232F] overflow-hidden flex flex-col h-[320px]">
+          <div class="p-3.5 border-b border-[#23232F] flex items-center justify-between bg-[#101017]">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-amber-400 text-sm"></i>
+              <h2 class="font-bold text-sm text-white">طابور المهام المؤتمتة (Task Queue)</h2>
+            </div>
+            <button onclick="openAddTaskModal()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-400 text-black transition-all flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-plus"></i> إضافة مهمة جديدة
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
+            <table class="w-full text-right text-xs">
+              <thead class="sticky top-0 bg-[#0E0E14] text-slate-400 border-b border-[#23232F]">
+                <tr>
+                  <th class="p-2.5 font-semibold">المعرف</th>
+                  <th class="p-2.5 font-semibold">الحساب المنفذ</th>
+                  <th class="p-2.5 font-semibold">نوع العملية</th>
+                  <th class="p-2.5 font-semibold">الرابط المستهدف</th>
+                  <th class="p-2.5 font-semibold">الحالة</th>
+                  <th class="p-2.5 font-semibold">إثبات التنفيذ</th>
+                </tr>
+              </thead>
+              <tbody id="tasksTableBody" class="divide-y divide-[#23232F]">
+                <tr>
+                  <td colspan="6" class="p-8 text-center text-slate-500">جاري تحميل المهام...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- سجل أحداث المحرك الخفي (Live Terminal Console) -->
+        <div class="rounded-xl bg-[#09090E] border border-[#23232F] overflow-hidden flex flex-col h-[260px] font-mono">
+          <div class="px-4 py-2.5 bg-[#101016] border-b border-[#23232F] flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2 text-slate-300">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span class="mr-2 font-bold text-amber-400">Live Console: خطوات المتصفح الحقيقي والمزامنة</span>
+            </div>
+            <button onclick="clearConsoleLogs()" class="text-slate-400 hover:text-slate-200 text-xs transition-colors">
+              <i class="fa-solid fa-trash-can ml-1"></i> مسح السجل
+            </button>
+          </div>
+          <div id="consoleLogs" class="flex-1 p-3.5 overflow-y-auto custom-scrollbar space-y-1.5 text-[11px] leading-relaxed text-slate-300">
+            <div class="text-slate-500">[00:00:00] المتصفح الحقيقي والمزامنة المستمرة للصور الحقيقية جاهزة للعمل.</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- نافذة مودال: عرض صورة إثبات التنفيذ (Proof Modal) -->
+  <div id="proofModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="w-full max-w-2xl rounded-2xl bg-[#13131A] border border-amber-500/40 p-5 space-y-4 gold-glow relative">
+      <div class="flex items-center justify-between border-b border-[#23232F] pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-camera-retro text-amber-400 text-base"></i>
+          لقطة شاشة لإثبات تنفيذ العملية (Execution Proof)
+        </h3>
+        <button onclick="closeProofModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-300">
+          تم التقاط هذه الصورة الحية من داخل متصفح الهاتف فور الضغط الفعلي على زر الإعجاب في فيسبوك:
+        </p>
+        <div class="rounded-xl overflow-hidden border border-[#2A2A38] bg-black flex items-center justify-center max-h-[500px]">
+          <img id="proofModalImg" src="" alt="Proof Screenshot" class="max-h-[480px] w-auto object-contain">
+        </div>
+        <div class="flex items-center justify-between pt-2">
+          <a id="proofDownloadLink" href="#" target="_blank" class="text-xs text-amber-400 hover:underline flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <span>فتح الصورة بحجمها الكامل في نافذة جديدة</span>
+          </a>
+          <button onclick="closeProofModal()" class="px-4 py-1.5 rounded-lg bg-[#181822] hover:bg-[#20202E] text-slate-300 text-xs">
+            إغلاق
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة مودال: إضافة حساب حقيقي جديد (Add Real Account Modal) -->
+  <div id="addAccountModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl bg-[#13131A] border border-[#2A2A38] p-6 space-y-5 gold-glow relative">
+      <div class="flex items-center justify-between border-b border-[#23232F] pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-amber-400"></i>
+          إضافة حساب فيسبوك حقيقي
+        </h3>
+        <button onclick="closeAddAccountModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="addAccountForm" onsubmit="handleAddAccountSubmit(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">اسم الحساب (Username):</label>
+          <input type="text" id="accUsername" required placeholder="مثال: Ahmed Ragab" class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">البريد الإلكتروني أو رقم الهاتف للدخول:</label>
+          <input type="text" id="accEmail" required placeholder="your-email@example.com أو +201..." class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">كلمة المرور الحقيقية (Password):</label>
+          <input type="password" id="accPassword" required placeholder="••••••••••••" class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5 flex items-center justify-between">
+            <span>كوكيز الجلسة (c_user & xs) [اختياري لتجاوز التحقق]:</span>
+            <span class="text-[10px] text-amber-400 font-normal">تخطي Checkpoint و 2FA فورياً</span>
+          </label>
+          <textarea id="accCookies" rows="2" placeholder="c_user=1000...; xs=... أو مصفوفة كوكيز JSON" class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-[11px]"></textarea>
+          <p class="text-[10px] text-amber-400/80 mt-1">
+            <i class="fa-solid fa-camera mr-1"></i>
+            سيقوم المحرك فور حفظ الحساب بفتح فيسبوك ومزامنة صورته الحقيقية تلقائياً.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#23232F]">
+          <button type="button" onclick="closeAddAccountModal()" class="px-4 py-2 rounded-lg bg-[#181822] hover:bg-[#20202E] text-slate-300">إلغاء</button>
+          <button type="submit" id="btnSubmitAddAccount" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold">حفظ الحساب وبدء المزامنة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة مودال: تعديل الحساب (Edit Account Modal) -->
+  <div id="editAccountModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl bg-[#13131A] border border-[#2A2A38] p-6 space-y-5 gold-glow relative">
+      <div class="flex items-center justify-between border-b border-[#23232F] pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-pen text-amber-400"></i>
+          تعديل بيانات الحساب
+        </h3>
+        <button onclick="closeEditAccountModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="editAccountForm" onsubmit="handleEditAccountSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="editAccountId">
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">اسم الحساب (Username):</label>
+          <input type="text" id="editUsername" required class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">البريد الإلكتروني / رقم الدخول:</label>
+          <input type="text" id="editEmail" required class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">كلمة المرور (اتركها فارغة إن لم ترغب بتغييرها):</label>
+          <input type="password" id="editPassword" placeholder="••••••••••••" class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5 flex items-center justify-between">
+            <span>تحديث كوكيز الجلسة (c_user & xs):</span>
+            <span class="text-[10px] text-amber-400 font-normal">فك تجميد الحساب وإلغاء Checkpoint</span>
+          </label>
+          <textarea id="editCookies" rows="2" placeholder="c_user=1000...; xs=... (لتجاوز أي فحص أمني)" class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none font-mono text-[11px]"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">حالة الحساب في النظام:</label>
+          <select id="editStatus" class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+            <option value="active">نشط (Active) - جاهز للعمل</option>
+            <option value="checkpoint">تحت التحقق (Checkpoint) - مجمد مؤقتاً</option>
+            <option value="banned">محظور (Banned) - متوقف نهائياً</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#23232F]">
+          <button type="button" onclick="closeEditAccountModal()" class="px-4 py-2 rounded-lg bg-[#181822] hover:bg-[#20202E] text-slate-300">إلغاء</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold">حفظ التعديلات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة مودال: إضافة مهمة جديدة (Add Task Modal) -->
+  <div id="addTaskModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-2xl bg-[#13131A] border border-[#2A2A38] p-6 space-y-5 gold-glow relative">
+      <div class="flex items-center justify-between border-b border-[#23232F] pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-amber-400"></i>
+          جدولة مهمة جديدة في الطابور
+        </h3>
+        <button onclick="closeAddTaskModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="addTaskForm" onsubmit="handleAddTaskSubmit(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">الحساب الفعلي المنفذ (Target Account):</label>
+          <select id="taskAccountSelect" required class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+            <option value="">اختر حساباً...</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">نوع العملية (Task Type):</label>
+          <select id="taskTypeSelect" required class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+            <option value="like" selected>إعجاب بمنشور (Like)</option>
+            <option value="comment">كتابة تعليق تفاعلي (Comment)</option>
+            <option value="extract_profile">فحص وتحديث البروفايل (extract_profile)</option>
+            <option value="share">مشاركة منشور (Share)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">رابط المنشور أو البروفايل (Target URL):</label>
+          <input type="url" id="taskTargetUrl" required placeholder="https://www.facebook.com/share/p/... أو https://m.facebook.com/..." class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none">
+          <p class="text-[10px] text-slate-500 mt-1">يقبل روابط المنشورات، المشاركات (Share URLs)، والصفحات العادية.</p>
+        </div>
+
+        <div id="payloadContainer" class="space-y-1.5">
+          <label class="block text-slate-300 font-medium mb-1.5">نص التعليق (في حال كانت المهمة تعليق) أو ملاحظة:</label>
+          <textarea id="taskPayload" rows="2" placeholder="اكتب نص التعليق هنا..." class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#23232F]">
+          <button type="button" onclick="closeAddTaskModal()" class="px-4 py-2 rounded-lg bg-[#181822] hover:bg-[#20202E] text-slate-300">إلغاء</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold">جدولة المهمة فوراً</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة مودال: إعدادات ومفاتيح Supabase -->
+  <div id="settingsModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-2xl bg-[#13131A] border border-[#2A2A38] p-6 space-y-5 gold-glow relative">
+      <div class="flex items-center justify-between border-b border-[#23232F] pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-amber-400"></i>
+          ربط ومزامنة قاعدة بيانات Supabase الحقيقية
+        </h3>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <p class="text-slate-400 leading-relaxed">
+          قم بإدخال بيانات مشروع Supabase الخاص بك لجلب جدول <code class="text-amber-400 font-mono">bot_accounts</code> الفعلي ومزامنته فورياً:
+        </p>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">Supabase Project URL:</label>
+          <input type="text" id="settingSupabaseUrl" placeholder="https://xxxxxxxx.supabase.co" class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">Supabase Anon Key / Service Role Key:</label>
+          <input type="password" id="settingSupabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full p-2.5 rounded-lg bg-[#0E0E14] border border-[#2A2A38] text-slate-200 focus:border-amber-400 focus:outline-none font-mono">
+        </div>
+
+        <div class="p-3 rounded-lg bg-[#0E0E14] border border-[#23232F] text-[11px] text-slate-400 flex items-center justify-between">
+          <span>اختبار الاتصال المباشر بالجداول:</span>
+          <button onclick="testSupabaseConnection()" class="px-3 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold transition-all">
+            فحص الاتصال الآن
+          </button>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#23232F]">
+          <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 rounded-lg bg-[#181822] hover:bg-[#20202E] text-slate-300">إغلاق</button>
+          <button type="button" onclick="saveSettings()" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold">حفظ ومزامنة الحسابات</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- المنطق البرمجي الكامل لإدارة الحسابات وطابور المهام والمزامنة الحية للصور -->
+  <script>
+    let state = {
+      accounts: [],
+      tasks: [],
+      isWorkerRunning: true,
+      lastLogId: 0,
+      avatarVersions: {} // لتتبع وتحديث الصور لايف
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedUrl = localStorage.getItem('smm_supabase_url') || '';
+      const savedKey = localStorage.getItem('smm_supabase_key') || '';
+      if (savedUrl) document.getElementById('settingSupabaseUrl').value = savedUrl;
+      if (savedKey) document.getElementById('settingSupabaseKey').value = savedKey;
+      refreshAllData();
+    });
+
+    // توليد شارة الأحرف الأولى الراقية للحساب كـ Fallback احترافي
+    function getInitialsBadgeHtml(username) {
+      const name = (username || 'User').trim();
+      const parts = name.split(/\s+/);
+      let initials = parts[0] ? parts[0][0].toUpperCase() : 'U';
+      if (parts.length > 1 && parts[1]) {
+        initials += parts[1][0].toUpperCase();
+      }
+      return `
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2A2415] to-[#14120B] border border-amber-500/40 flex items-center justify-center font-bold font-mono text-amber-400 text-sm shadow-sm">
+          ${initials}
+        </div>
+      `;
+    }
+
+    // نوافذ العرض والتحكم
+    function openAddAccountModal() {
+      document.getElementById('addAccountModal').classList.remove('hidden');
+      document.getElementById('addAccountModal').classList.add('flex');
+    }
+    function closeAddAccountModal() {
+      document.getElementById('addAccountModal').classList.add('hidden');
+      document.getElementById('addAccountModal').classList.remove('flex');
+    }
+
+    function openEditAccountModal(accountId) {
+      const acc = state.accounts.find(a => a.id === accountId);
+      if (!acc) return;
+
+      document.getElementById('editAccountId').value = acc.id;
+      document.getElementById('editUsername').value = acc.username || '';
+      document.getElementById('editEmail').value = acc.email || '';
+      document.getElementById('editPassword').value = '';
+      document.getElementById('editStatus').value = acc.status || 'active';
+
+      document.getElementById('editAccountModal').classList.remove('hidden');
+      document.getElementById('editAccountModal').classList.add('flex');
+    }
+    function closeEditAccountModal() {
+      document.getElementById('editAccountModal').classList.add('hidden');
+      document.getElementById('editAccountModal').classList.remove('flex');
+    }
+
+    function openAddTaskModal(preselectedAccountId = null) {
+      populateAccountSelect(preselectedAccountId);
+      document.getElementById('addTaskModal').classList.remove('hidden');
+      document.getElementById('addTaskModal').classList.add('flex');
+    }
+    function closeAddTaskModal() {
+      document.getElementById('addTaskModal').classList.add('hidden');
+      document.getElementById('addTaskModal').classList.remove('flex');
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('hidden');
+      document.getElementById('settingsModal').classList.add('flex');
+    }
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+      document.getElementById('settingsModal').classList.remove('flex');
+    }
+
+    function openProofModal(proofUrl) {
+      if (!proofUrl) return;
+      document.getElementById('proofModalImg').src = proofUrl;
+      document.getElementById('proofDownloadLink').href = proofUrl;
+      document.getElementById('proofModal').classList.remove('hidden');
+      document.getElementById('proofModal').classList.add('flex');
+    }
+    function closeProofModal() {
+      document.getElementById('proofModal').classList.add('hidden');
+      document.getElementById('proofModal').classList.remove('flex');
+    }
+
+    // تسجيل سطر في الكونسول
+    function appendConsoleLog(message, type = 'info', timeStr = null) {
+      const consoleEl = document.getElementById('consoleLogs');
+      const time = timeStr || new Date().toLocaleTimeString('ar-EG');
+      const line = document.createElement('div');
+      
+      let colorClass = 'text-slate-300';
+      if (type === 'success') colorClass = 'text-emerald-400 font-semibold';
+      if (type === 'warning') colorClass = 'text-amber-400';
+      if (type === 'error') colorClass = 'text-rose-400 font-bold';
+
+      line.className = 'flex gap-2 items-start';
+      line.innerHTML = `<span class="text-slate-500 select-none">[${time}]</span> <span class="${colorClass}">${message}</span>`;
+      consoleEl.appendChild(line);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function clearConsoleLogs() {
+      document.getElementById('consoleLogs').innerHTML = '';
+      appendConsoleLog('تم مسح سجل الأحداث.', 'info');
+    }
+
+    function populateAccountSelect(preselectedId = null) {
+      const select = document.getElementById('taskAccountSelect');
+      select.innerHTML = '<option value="">اختر حساباً...</option>';
+      state.accounts.forEach(acc => {
+        const opt = document.createElement('option');
+        opt.value = acc.id;
+        opt.textContent = `${acc.username} (${acc.email || 'بدون إيميل'}) - [${acc.status}]`;
+        if (preselectedId && acc.id === preselectedId) {
+          opt.selected = true;
+        }
+        if (acc.status !== 'active') {
+          opt.disabled = true;
+          opt.textContent += ' (غير متاح للتنفيذ)';
+        }
+        select.appendChild(opt);
+      });
+    }
+
+    // جلب وتحديث كافة البيانات مع المزامنة اللحظية للصور
+    async function refreshAllData() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        // فحص ما إذا كانت هناك صور تم تحديثها
+        let avatarsChanged = false;
+        (data.accounts || []).forEach(newAcc => {
+          const oldVersion = state.avatarVersions[newAcc.id];
+          const newVersion = newAcc.avatar_updated_at || newAcc.avatar_url;
+          if (oldVersion !== newVersion) {
+            state.avatarVersions[newAcc.id] = newVersion;
+            avatarsChanged = true;
+          }
+        });
+
+        state.accounts = data.accounts || [];
+        state.tasks = data.tasks || [];
+        state.isWorkerRunning = data.isWorkerRunning;
+
+        // تحديث كروت الأرقام
+        document.getElementById('statActiveAccounts').innerText = data.stats.activeAccounts;
+        document.getElementById('statCheckpointAccounts').innerText = data.stats.checkpointAccounts;
+        document.getElementById('statBannedAccounts').innerText = data.stats.bannedAccounts;
+        document.getElementById('statPendingTasks').innerText = data.stats.pendingTasks;
+        document.getElementById('statCompletedTasks').innerText = data.stats.completedTasks;
+        document.getElementById('accountsCountBadge').innerText = state.accounts.length;
+
+        // تحديث شريط الاتصال
+        const dbBadge = document.getElementById('dbBadge');
+        if (data.env.supabaseConnected) {
+          dbBadge.innerHTML = `<span class="text-emerald-400 font-bold">Supabase متصل</span> (${data.env.supabaseUrl || 'نشط'})`;
+        } else {
+          dbBadge.innerHTML = `<span class="text-amber-400">تخزين محلي مباشر</span> (يمكنك ربط Supabase من الإعدادات)`;
+        }
+
+        updateWorkerControls(data.isWorkerRunning);
+        renderAccounts();
+        renderTasks();
+
+      } catch (err) {
+        console.error('Error fetching status:', err);
+      }
+    }
+
+    function updateWorkerControls(isRunning) {
+      const toggleBtn = document.getElementById('toggleWorkerBtn');
+      const toggleIcon = document.getElementById('toggleIcon');
+      const toggleText = document.getElementById('toggleText');
+
+      if (isRunning) {
+        toggleBtn.className = 'px-3.5 py-2 text-xs font-semibold rounded-lg bg-rose-600/90 hover:bg-rose-600 text-white shadow-md transition-all flex items-center gap-2';
+        toggleIcon.className = 'fa-solid fa-pause';
+        toggleText.innerText = 'إيقاف الطابور';
+      } else {
+        toggleBtn.className = 'px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#181822] hover:bg-[#222230] text-slate-200 border border-[#2A2A38] transition-all flex items-center gap-2';
+        toggleIcon.className = 'fa-solid fa-play text-amber-400';
+        toggleText.innerText = 'تشغيل الطابور';
+      }
+    }
+
+    // رسم بطاقات الحسابات الفعلية مع الصورة الحقيقية وزر المزامنة
+    function renderAccounts() {
+      const container = document.getElementById('accountsListContainer');
+      if (!state.accounts || state.accounts.length === 0) {
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-[#23232F] rounded-xl bg-[#0E0E14]/50">
+            <div class="w-14 h-14 rounded-2xl bg-[#1A1A24] flex items-center justify-center text-amber-400 text-2xl mb-4 gold-glow">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <h3 class="font-bold text-sm text-white mb-1">لا توجد حسابات مسجلة بعد</h3>
+            <p class="text-xs text-slate-400 max-w-sm mb-5 leading-relaxed">
+              تم تجهيز النظام للعمل الحقيقي. أضف أول حساب فيسبوك حقيقي الآن لتشغيل المتصفح وتنفيذ الإعجاب والتعليقات ومزامنة صورته.
+            </p>
+            <button onclick="openAddAccountModal()" class="px-4 py-2 text-xs rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20">
+              <i class="fa-solid fa-plus"></i>
+              <span>إضافة حساب حقيقي الآن</span>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.accounts.map(acc => {
+        let statusBadge = '<span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">نشط (Active)</span>';
+        if (acc.status === 'checkpoint') {
+          statusBadge = '<span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">تفتيش (Checkpoint)</span>';
+        } else if (acc.status === 'banned') {
+          statusBadge = '<span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">محظور (Banned)</span>';
+        }
+
+        // عرض الصورة الحقيقية المستخرجة محلياً مع كاسر الكاش لمنع الثبات، أو عرض شارة الأحرف
+        const cacheBuster = acc.avatar_updated_at || Date.now();
+        let avatarElement = '';
+
+        if (acc.avatar_url && (acc.avatar_url.startsWith('/avatars/') || acc.avatar_url.includes('fbcdn') || acc.avatar_url.includes('scontent'))) {
+          avatarElement = `
+            <div class="relative group">
+              <img src="${acc.avatar_url}?t=${cacheBuster}" alt="${acc.username}" class="w-12 h-12 rounded-xl object-cover bg-[#1A1A24] border-2 border-amber-500/30 shadow-md transition-all group-hover:border-amber-400" onerror="this.parentElement.innerHTML = getInitialsBadgeHtml('${acc.username}');">
+              <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0E0E14]" title="صورة فيسبوك الحقيقية متصلة"></span>
+            </div>
+          `;
+        } else {
+          avatarElement = getInitialsBadgeHtml(acc.username);
+        }
+
+        return `
+          <div class="p-3.5 rounded-xl bg-[#0E0E14] border border-[#23232F] hover:border-amber-500/30 transition-all space-y-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                ${avatarElement}
+                <div>
+                  <h4 class="font-bold text-xs text-white flex items-center gap-1.5">
+                    ${acc.username}
+                  </h4>
+                  <p class="text-[11px] text-slate-400 font-mono select-all">${acc.email || 'بدون بريد'}</p>
+                  <p class="text-[9px] text-emerald-400 flex items-center gap-1 mt-0.5">
+                    <i class="fa-solid fa-circle-check text-[8px]"></i>
+                    ${acc.avatar_url ? 'صورة فيسبوك الحقيقية متزامنة' : 'في انتظار المزامنة الأولى'}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+              </div>
+            </div>
+
+            ${acc.last_error ? `
+              <div class="p-2 rounded-lg bg-rose-950/20 border border-rose-800/30 text-[10px] text-rose-300 flex items-start gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation mt-0.5 text-rose-400 shrink-0"></i>
+                <span class="truncate" title="${acc.last_error}">${acc.last_error}</span>
+              </div>
+            ` : ''}
+
+            <!-- شريط التحكم الكامل بالحساب والمزامنة الحية -->
+            <div class="pt-2 border-t border-[#1C1C26] flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div class="flex items-center gap-1.5">
+                <!-- زر فحص بالمتصفح -->
+                <button onclick="checkAccountLive('${acc.id}', this)" class="px-2.5 py-1 rounded bg-[#20202E] hover:bg-[#2A2A3C] text-amber-400 border border-amber-500/30 transition-all flex items-center gap-1 text-[11px] font-semibold" title="فحص الحساب بالمتصفح ومزامنة بياناته وصورته">
+                  <i class="fa-solid fa-bolt text-amber-400"></i>
+                  <span>فحص بالمتصفح</span>
+                </button>
+
+                <!-- زر مزامنة الصورة لايف -->
+                <button onclick="syncAvatarLive('${acc.id}', this)" class="px-2.5 py-1 rounded bg-[#1A1A24] hover:bg-[#222230] text-slate-300 hover:text-amber-400 border border-[#2A2A38] transition-all flex items-center gap-1 text-[11px]" title="سحب وتحديث الصورة الحقيقية فوراً من فيسبوك">
+                  <i class="fa-solid fa-camera-rotate text-[10px] text-amber-400"></i>
+                  <span>مزامنة الصورة</span>
+                </button>
+
+                <!-- زر التعديل -->
+                <button onclick="openEditAccountModal('${acc.id}')" class="px-2.5 py-1 rounded bg-[#181822] hover:bg-[#222230] text-slate-300 hover:text-white border border-[#2A2A38] transition-all flex items-center gap-1 text-[11px]" title="تعديل الحساب">
+                  <i class="fa-solid fa-pen-to-square text-[10px] text-amber-400"></i>
+                  <span>تعديل</span>
+                </button>
+
+                <!-- زر إضافة مهمة سريعة لهذا الحساب -->
+                <button onclick="openAddTaskModal('${acc.id}')" class="px-2 py-1 rounded bg-[#181822] hover:bg-[#222230] text-slate-300 hover:text-white border border-[#2A2A38] transition-all" title="جدولة مهمة لهذا الحساب">
+                  <i class="fa-solid fa-plus text-[10px] text-amber-400"></i>
+                </button>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <!-- تبديل الحالة السريع -->
+                <select onchange="changeAccountStatus('${acc.id}', this.value)" class="bg-[#12121A] text-slate-300 text-[10px] rounded border border-[#2A2A38] px-2 py-1 focus:outline-none focus:border-amber-400">
+                  <option value="active" ${acc.status === 'active' ? 'selected' : ''}>نشط</option>
+                  <option value="checkpoint" ${acc.status === 'checkpoint' ? 'selected' : ''}>تفتيش</option>
+                  <option value="banned" ${acc.status === 'banned' ? 'selected' : ''}>محظور</option>
+                </select>
+
+                <!-- زر الحذف -->
+                <button onclick="deleteAccount('${acc.id}', '${acc.username}')" class="w-7 h-7 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all flex items-center justify-center" title="حذف الحساب">
+                  <i class="fa-solid fa-trash-can text-[11px]"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // رسم جدول المهام
+    function renderTasks() {
+      const tbody = document.getElementById('tasksTableBody');
+      if (!state.tasks || state.tasks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">لا توجد مهام في الطابور حالياً. يمكنك جدولة مهمة جديدة.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = state.tasks.map(t => {
+        let statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">معلقة</span>';
+        if (t.status === 'in_progress') {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30 animate-pulse">قيد التنفيذ...</span>';
+        } else if (t.status === 'completed') {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">مكتملة</span>';
+        } else if (t.status === 'failed') {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">فشلت</span>';
+        }
+
+        const taskTypeMap = {
+          'like': '<span class="text-blue-400 font-medium"><i class="fa-solid fa-thumbs-up ml-1"></i> إعجاب (Like)</span>',
+          'comment': '<span class="text-emerald-400 font-medium"><i class="fa-solid fa-comment ml-1"></i> تعليق (Comment)</span>',
+          'extract_profile': '<span class="text-amber-400 font-medium"><i class="fa-solid fa-id-badge ml-1"></i> فحص بروفايل</span>',
+          'share': '<span class="text-purple-400 font-medium"><i class="fa-solid fa-share ml-1"></i> مشاركة (Share)</span>'
+        };
+
+        const rawType = (t.task_type || 'like').toLowerCase();
+        const typeHtml = taskTypeMap[rawType] || `<span class="text-blue-400 font-medium"><i class="fa-solid fa-thumbs-up ml-1"></i> إعجاب (${rawType})</span>`;
+
+        const shortId = String(t.id).substring(0, 8);
+        const accountName = t.bot_accounts?.username || 'حساب غير محدد';
+        const targetUrl = t.target_url || '';
+
+        const proofUrl = t.payload?.proof_url;
+        let proofButton = '<span class="text-slate-600 text-[10px]">-</span>';
+        if (proofUrl) {
+          proofButton = `
+            <button onclick="openProofModal('${proofUrl}')" class="px-2.5 py-1 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 text-[10px] font-bold transition-all flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-camera"></i>
+              <span>صورة الإثبات</span>
+            </button>
+          `;
+        } else if (t.status === 'completed') {
+          proofButton = '<span class="text-emerald-400 text-[10px] font-semibold"><i class="fa-solid fa-check ml-1"></i> نُفذت</span>';
+        } else if (t.status === 'failed') {
+          proofButton = `<span class="text-rose-400 text-[10px] truncate max-w-[100px]" title="${t.error_message || 'فشلت'}">${t.error_message || 'فشلت'}</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-[#151520] transition-colors">
+            <td class="p-2.5 font-mono text-slate-400">#${shortId}</td>
+            <td class="p-2.5 font-medium text-white">${accountName}</td>
+            <td class="p-2.5">${typeHtml}</td>
+            <td class="p-2.5 max-w-[180px] truncate font-mono text-slate-400" title="${targetUrl}">
+              <a href="${targetUrl}" target="_blank" class="hover:text-amber-400 transition-colors">${targetUrl}</a>
+            </td>
+            <td class="p-2.5">${statusBadge}</td>
+            <td class="p-2.5">${proofButton}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // دالة الفحص بالمتصفح الحقيقي وتأكيد صلاحية الجلسة واستخراج الصورة
+    async function checkAccountLive(accountId, btnElement = null) {
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<i class="fa-solid fa-spinner animate-spin ml-1 text-amber-400"></i> جاري الفحص...';
+      }
+
+      appendConsoleLog(`[فحص بالمتصفح] بدء التحقق الفعلي بالمتصفح للحساب [#${accountId}] ومزامنة الصورة...`, 'info');
+
+      try {
+        const res = await fetch(`/api/accounts/${accountId}/check`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          appendConsoleLog(`✅ ${data.message || 'تم فحص الحساب ومزامنة الصورة بنجاح'}`, 'success');
+          if (data.proofUrl) {
+            appendConsoleLog(`📸 تم توثيق الفحص بلقطة شاشة: ${data.proofUrl}`, 'info');
+          }
+          await refreshAllData();
+        } else {
+          appendConsoleLog(`⚠️ نتيجة الفحص: ${data.message || 'حدث خطأ أثناء الفحص بالمتصفح'}`, 'warning');
+          await refreshAllData();
+        }
+      } catch (err) {
+        appendConsoleLog(`خطأ أثناء فحص الحساب: ${err.message}`, 'error');
+      } finally {
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.innerHTML = '<i class="fa-solid fa-bolt text-amber-400"></i> <span>فحص بالمتصفح</span>';
+        }
+      }
+    }
+
+    // دالة المزامنة الحية الفورية لصورة الحساب
+    async function syncAvatarLive(accountId, btnElement = null) {
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<i class="fa-solid fa-spinner animate-spin ml-1 text-amber-400"></i> جاري سحب الصورة...';
+      }
+
+      appendConsoleLog(`[مزامنة لايف] فتح فيسبوك بالمتصفح لسحب أحدث صورة بروفايل للحساب [#${accountId}]...`, 'info');
+
+      try {
+        const res = await fetch(`/api/accounts/${accountId}/sync-avatar`, { method: 'POST' });
+        const result = await res.json();
+        if (result.success) {
+          appendConsoleLog(`✅ تم استخراج وتحديث صورة الحساب الحقيقية بنجاح!`, 'success');
+          await refreshAllData();
+        } else {
+          appendConsoleLog(`تعذر تحديث الصورة: ${result.message}`, 'error');
+        }
+      } catch (err) {
+        appendConsoleLog(`خطأ في المزامنة: ${err.message}`, 'error');
+      } finally {
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.innerHTML = '<i class="fa-solid fa-camera-rotate text-[10px] text-amber-400"></i> <span>مزامنة الصورة</span>';
+        }
+      }
+    }
+
+    // مزامنة صور كافة الحسابات
+    async function syncAllAccountsAvatars() {
+      if (!state.accounts || state.accounts.length === 0) {
+        alert('لا توجد حسابات مسجلة بعد.');
+        return;
+      }
+      appendConsoleLog('بدء مزامنة صور جميع الحسابات بالتتابع...', 'info');
+      for (const acc of state.accounts) {
+        if (acc.status === 'active') {
+          await syncAvatarLive(acc.id);
+        }
+      }
+    }
+
+    // إرسال حساب حقيقي جديد
+    async function handleAddAccountSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitAddAccount');
+      btn.disabled = true;
+      btn.innerText = 'جاري الحفظ وبدء المزامنة...';
+
+      const username = document.getElementById('accUsername').value;
+      const email = document.getElementById('accEmail').value;
+      const password = document.getElementById('accPassword').value;
+      const cookies = (document.getElementById('accCookies')?.value || '').trim();
+
+      try {
+        const res = await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password, cookies: cookies || undefined })
+        });
+        const result = await res.json();
+        if (result.success) {
+          appendConsoleLog(`تم تسجيل الحساب الجديد بنجاح: ${username} (${email}). المتصفح يقوم الآن بسحب صورته الحقيقية في الخلفية...`, 'success');
+          closeAddAccountModal();
+          document.getElementById('addAccountForm').reset();
+          await refreshAllData();
+        } else {
+          alert('خطأ: ' + (result.message || 'فشل إضافة الحساب'));
+        }
+      } catch (err) {
+        alert('فشل الاتصال: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'حفظ الحساب وبدء المزامنة';
+      }
+    }
+
+    // إرسال تعديل الحساب
+    async function handleEditAccountSubmit(e) {
+      e.preventDefault();
+      const accountId = document.getElementById('editAccountId').value;
+      const username = document.getElementById('editUsername').value;
+      const email = document.getElementById('editEmail').value;
+      const password = document.getElementById('editPassword').value;
+      const status = document.getElementById('editStatus').value;
+      const cookies = (document.getElementById('editCookies')?.value || '').trim();
+
+      const payload = { username, email, status };
+      if (password) payload.password = password;
+      if (cookies) payload.cookies = cookies;
+
+      try {
+        const res = await fetch(`/api/accounts/${accountId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.success) {
+          appendConsoleLog(`تم تعديل الحساب ${username} بنجاح ${cookies ? 'مع تحديث كوكيز الجلسة وتخطي الفحص' : ''}.`, 'success');
+          closeEditAccountModal();
+          await refreshAllData();
+        } else {
+          alert('خطأ: ' + (result.message || 'فشل التعديل'));
+        }
+      } catch (err) {
+        alert('فشل الاتصال: ' + err.message);
+      }
+    }
+
+    // حذف الحساب
+    async function deleteAccount(accountId, username) {
+      if (!confirm(`هل أنت متأكد من حذف الحساب "${username}" نهائياً من النظام وكافة مهامه وجلساته؟`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/accounts/${accountId}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+          appendConsoleLog(`تم حذف الحساب ${username} بنجاح.`, 'warning');
+          await refreshAllData();
+        } else {
+          alert('خطأ: ' + (result.message || 'فشل الحذف'));
+        }
+      } catch (err) {
+        alert('فشل الاتصال: ' + err.message);
+      }
+    }
+
+    // تغيير حالة الحساب سريعاً
+    async function changeAccountStatus(accountId, newStatus) {
+      try {
+        const res = await fetch(`/api/accounts/${accountId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        const result = await res.json();
+        if (result.success) {
+          appendConsoleLog(`تم تغيير حالة الحساب إلى [${newStatus}] بنجاح.`, 'info');
+          await refreshAllData();
+        }
+      } catch (e) {
+        alert('فشل تحديث الحالة: ' + e.message);
+      }
+    }
+
+    // إرسال مهمة جديدة
+    async function handleAddTaskSubmit(e) {
+      e.preventDefault();
+      const account_id = document.getElementById('taskAccountSelect').value;
+      const task_type = document.getElementById('taskTypeSelect').value || 'like';
+      const target_url = document.getElementById('taskTargetUrl').value.trim();
+      const payloadText = document.getElementById('taskPayload').value.trim();
+
+      if (!target_url) {
+        alert('يرجى إدخال الرابط المستهدف');
+        return;
+      }
+
+      let payload = {};
+      if (payloadText) {
+        payload = { text: payloadText, note: payloadText };
+      }
+
+      try {
+        const res = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account_id, task_type, target_url, payload })
+        });
+        const result = await res.json();
+        if (result.success) {
+          appendConsoleLog(`تمت إضافة مهمة [${task_type}] جديدة في الطابور على الرابط: ${target_url}`, 'success');
+          closeAddTaskModal();
+          document.getElementById('addTaskForm').reset();
+          await refreshAllData();
+        } else {
+          alert('خطأ: ' + (result.message || 'فشل إضافة المهمة'));
+        }
+      } catch (err) {
+        alert('فشل الاتصال: ' + err.message);
+      }
+    }
+
+    // تشغيل / إيقاف المحرك
+    async function toggleContinuousWorker() {
+      try {
+        const res = await fetch('/api/worker/toggle', { method: 'POST' });
+        const data = await res.json();
+        state.isWorkerRunning = data.isWorkerRunning;
+        updateWorkerControls(state.isWorkerRunning);
+        appendConsoleLog(data.message, state.isWorkerRunning ? 'success' : 'warning');
+      } catch (err) {
+        alert('فشل التبديل: ' + err.message);
+      }
+    }
+
+    // تنفيذ مهمة فورية يدوياً بالمتصفح
+    async function triggerImmediateTask() {
+      appendConsoleLog('جاري بدء معالجة المهمة المعلقة بالمتصفح الحقيقي فوراً...', 'info');
+      try {
+        const res = await fetch('/api/run', { method: 'POST' });
+        const data = await res.json();
+        appendConsoleLog(data.message, data.success ? 'success' : 'warning');
+        await refreshAllData();
+      } catch (err) {
+        appendConsoleLog('خطأ أثناء تشغيل المهمة: ' + err.message, 'error');
+      }
+    }
+
+    // إعدادات Supabase
+    async function saveSettings() {
+      const url = document.getElementById('settingSupabaseUrl').value.trim();
+      const key = document.getElementById('settingSupabaseKey').value.trim();
+
+      localStorage.setItem('smm_supabase_url', url);
+      localStorage.setItem('smm_supabase_key', key);
+
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ supabase_url: url, supabase_key: key })
+        });
+        const data = await res.json();
+        appendConsoleLog(data.message, data.success ? 'success' : 'warning');
+        closeSettingsModal();
+        await refreshAllData();
+      } catch (err) {
+        alert('خطأ في إرسال الإعدادات: ' + err.message);
+      }
+    }
+
+    async function testSupabaseConnection() {
+      const url = document.getElementById('settingSupabaseUrl').value.trim();
+      const key = document.getElementById('settingSupabaseKey').value.trim();
+      if (!url || !key) {
+        alert('يرجى إدخال الرابط والمفتاح أولاً.');
+        return;
+      }
+      try {
+        const client = window.supabase.createClient(url, key);
+        const { data, error } = await client.from('bot_accounts').select('id, username').limit(5);
+        if (error) throw error;
+        alert(`تم الاتصال بنجاح! تم العثور على جدول bot_accounts ويحتوي على ${data ? data.length : 0} حساب.`);
+      } catch (err) {
+        alert('فشل الاتصال بـ Supabase: ' + err.message);
+      }
+    }
+
+    // استماع دوري للسجلات وتحديث لحظي مستمر للصور كل ثانيتين
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/logs?after=' + state.lastLogId);
+        const data = await res.json();
+        if (data.logs && data.logs.length > 0) {
+          data.logs.forEach(l => {
+            appendConsoleLog(l.message, l.type || 'info', new Date(l.time).toLocaleTimeString('ar-EG'));
+            state.lastLogId = Math.max(state.lastLogId, l.id);
+          });
+        }
+      } catch (e) {}
+    }, 1500);
+
+    // تحديث دوري ذكي كل ثانيتين لمزامنة الصور فوراً عند أي تغيير
+    setInterval(refreshAllData, 2000);
+  </script>
+</body>
+</html>
